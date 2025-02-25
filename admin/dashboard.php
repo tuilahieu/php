@@ -2,7 +2,6 @@
 require $_SERVER['DOCUMENT_ROOT'] . "/core/connect/database.php";
 require $_SERVER['DOCUMENT_ROOT'] . "/admin/auth/security.php";
 
-var_dump($_SESSION);
 if (isset($_GET['logout'])) {
     unset($_SESSION['admin_id']);
     unset($_SESSION['admin_role']);
@@ -26,9 +25,8 @@ $pending_orders = $conn->query("SELECT COUNT(*) AS count FROM orders WHERE statu
 $pending_transactions = $conn->query("SELECT COUNT(*) AS count FROM transactions WHERE status = 'pending'")->fetch_assoc()['count'];
 
 // Tổng doanh thu
-$total_revenue = $conn->query("SELECT SUM(s.price) AS revenue 
+$total_revenue = $conn->query("SELECT SUM(o.price) AS revenue 
                                FROM orders o 
-                               JOIN services s ON o.service_id = s.id 
                                WHERE o.status = 'completed'")->fetch_assoc()['revenue'];
 $total_revenue = $total_revenue ? number_format($total_revenue) : 0;
  

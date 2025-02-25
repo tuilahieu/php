@@ -3,30 +3,32 @@ require $_SERVER['DOCUMENT_ROOT'] . "/core/connect/database.php";
 require $_SERVER['DOCUMENT_ROOT'] . "/admin/auth/security.php";
 
 // Fetch danh sách ngân hàng từ API VietQR
-function getBanksFromAPI() {
-    $curl = curl_init("https://api.vietqr.io/v2/banks");
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($curl);
-    curl_close($curl);
+// function getBanksFromAPI() {
+//     $curl = curl_init("https://api.vietqr.io/v2/banks");
+//     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+//     $response = curl_exec($curl);
+//     curl_close($curl);
 
-    $data = json_decode($response, true);
-    $banks = $data['data'] ?? [];
+//     $data = json_decode($response, true);
+//     $banks = $data['data'] ?? [];
 
-    // Thêm MoMo vào danh sách ngân hàng
-    $banks[] = [
-        "id" => "momo",
-        "shortName" => "MoMo",
-        "name" => "Ví MoMo",
-        "code" => "momo",
-        "bin" => "MOMO",
-        "logo" => "https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png",
-        "swiftCode" => "MOMO",
-    ];
+//     // Thêm MoMo vào danh sách ngân hàng
+//     $banks[] = [
+//         "id" => "momo",
+//         "shortName" => "MoMo",
+//         "name" => "Ví MoMo",
+//         "code" => "momo",
+//         "bin" => "MOMO",
+//         "logo" => "https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png",
+//         "swiftCode" => "MOMO",
+//     ];
 
-    return $banks;
-}
+//     return $banks;
+// }
 
-$bankList = getBanksFromAPI();
+$bankList = file_get_contents('./banks.json');
+$bankList = json_decode($bankList, true);
+$bankList = $bankList['data'] ?? [];
 
 // Xử lý thêm ngân hàng
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_bank'])) {

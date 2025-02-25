@@ -3,9 +3,10 @@ require $_SERVER['DOCUMENT_ROOT'] . "/core/connect/database.php";
 require $_SERVER['DOCUMENT_ROOT'] . "/admin/auth/security.php";
 
 // Lấy danh sách đơn hàng
-$query = "SELECT orders.id, users.username, orders.service_name, orders.status, orders.price, orders.notes, orders.created_at 
+$query = "SELECT orders.id, users.username, orders.service_name, orders.status, orders.price, orders.notes, orders.created_at, services.name
           FROM orders 
           JOIN users ON orders.user_id = users.id 
+          JOIN services ON orders.service_id = services.id 
           ORDER BY orders.created_at DESC";
 $orders = $conn->query($query);
 
@@ -65,6 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_order'])) {
                 <tr class="bg-gray-200">
                     <th class="border p-2">ID</th>
                     <th class="border p-2">Khách hàng</th>
+                    <th class="border p-2">Tên đơn</th>
                     <th class="border p-2">Dịch vụ</th>
                     <th class="border p-2">Giá</th>
                     <th class="border p-2">Trạng thái</th>
@@ -79,6 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_order'])) {
                         <td class="border p-2"><?= $row['id'] ?></td>
                         <td class="border p-2"><?= htmlspecialchars($row['username']) ?></td>
                         <td class="border p-2"><?= htmlspecialchars($row['service_name']) ?></td>
+                        <td class="border p-2"><?= htmlspecialchars($row['name']) ?></td>
                         <td class="border p-2"><?= number_format(htmlspecialchars($row['price'])) . ' VNĐ' ?></td>
                         <td class="border p-2 text-blue-500 font-bold" id="status-<?= $row['id'] ?>">
                             <?= htmlspecialchars($row['status']) ?>

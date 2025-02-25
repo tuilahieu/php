@@ -97,22 +97,15 @@ $stmt->close();
         $user_id = $_SESSION['user_id'];
     
         // Lấy giá dịch vụ để hoàn tiền
-        $stmt = $conn->prepare("SELECT service_id FROM orders WHERE id = ? AND user_id = ? AND status = 'pending'");
+        $stmt = $conn->prepare("SELECT price FROM orders WHERE id = ? AND user_id = ? AND status = 'pending'");
         $stmt->bind_param("ii", $order_id, $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
+
+        $order = $result->fetch_assoc();
         
-        if ($order = $result->fetch_assoc()) {
+        if ($order) {
             $service_id = $order['service_id'];
-    
-            // Lấy giá dịch vụ từ bảng services
-            $stmt = $conn->prepare("SELECT price FROM services WHERE id = ?");
-            $stmt->bind_param("i", $service_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($service = $result->fetch_assoc()) {
-                $refund_amount = $service['price'];
     
                 // Cập nhật trạng thái đơn hàng thành "canceled"
                 $stmt = $conn->prepare("UPDATE orders SET status = 'canceled' WHERE id = ?");
@@ -121,7 +114,7 @@ $stmt->close();
     
                 // Hoàn tiền lại vào tài khoản user
                 $stmt = $conn->prepare("UPDATE users SET balance = balance + ? WHERE id = ?");
-                $stmt->bind_param("di", $refund_amount, $user_id);
+                $stmt->bind_param("di", $order['price'], $user_id);
                 $stmt->execute();
 
                 echo("<script>
@@ -137,7 +130,6 @@ $stmt->close();
         }
         $stmt->close();
         $conn->close();
-    }
     ?>
 
     <!-- Hiển thị danh sách đơn hàng -->
