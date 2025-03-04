@@ -1,4 +1,7 @@
-<?php require_once $_SERVER['DOCUMENT_ROOT'] . "/core/connect/database.php"; // File kết nối CSDL ?>
+<?php 
+    require_once $_SERVER['DOCUMENT_ROOT'] . "/core/connect/database.php"; // File kết nối CSDL
+?>
+
 <?php require $_SERVER['DOCUMENT_ROOT'] . "/includes/header.php" ?>
 
 <div class="my-24 mx-auto bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
@@ -39,61 +42,75 @@
 
 </body>
 </html>
-
-
 <?php
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Lấy dữ liệu từ form
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
 
+    // Kiểm tra dữ liệu đầu vào
     if (empty($username) || empty($password)) {
-        die("Vui lòng nhập đầy đủ thông tin!");
+        echo "<script>
+        Swal.fire({
+            title: 'Lỗi!',
+            text: 'Vui lòng nhập đầy đủ thông tin.',
+            icon: 'error',
+            confirmButtonText: 'Thử lại'
+        });
+        </script>";
+        exit();
     }
 
-    // Truy vấn kiểm tra user
+    // Chuẩn bị câu truy vấn
     $stmt = $conn->prepare("SELECT id, name, password, balance FROM users WHERE username = ?");
+    if ($stmt === false) {
+        die("Lỗi chuẩn bị truy vấn: " . htmlspecialchars($conn->error));
+    }
+
+    // Gán tham số và thực thi truy vấn
     $stmt->bind_param("s", $username);
     $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($user = $result->fetch_assoc()) {
-        // Kiểm tra mật khẩu (giả sử mật khẩu đã mã hóa bằng password_hash)
-        if (password_verify($password, $user['password'])) {
-            // Lưu session đăng nhập
-            $_SESSION['user_id'] = $user['id'];
-            
-            echo("<script>
-        Swal.fire({
-            title: 'Thành công!',
-            text: 'Đăng nhập thành công !',
-            icon: 'success',
-        }).then(() => window.location.href = '/pages/dashboard.php');
-        
-        </script>");
-        exit();
+
+    // Liên kết các biến với kết quả trả về
+    $stmt->bind_result($id, $name, $hashed_password, $balance);
+
+    // Kiểm tra kết quả
+    if ($stmt->fetch()) {
+        // Xác minh mật khẩu
+        if (password_verify($password, $hashed_password)) {
+            $_SESSION['user_id'] = $id;
+            echo "<script>
+            Swal.fire({
+                title: 'Thành công!',
+                text: 'Đăng nhập thành công!',
+                icon: 'success',
+            }).then(() => window.location.href = '/pages/dashboard.php');
+            </script>";
+            exit();
         } else {
             echo "<script>
             Swal.fire({
                 title: 'Lỗi!',
-                text: 'Sai tài khoản hoặc mật khẩu.',
+                text: 'Sai mật khẩu.',
                 icon: 'error',
                 confirmButtonText: 'Thử lại'
             });
-        </script>";
+            </script>";
         }
     } else {
         echo "<script>
-            Swal.fire({
-                title: 'Lỗi!',
-                text: 'Tài khoản không tồn tại.',
-                icon: 'error',
-                confirmButtonText: 'Thử lại'
-            });
+        Swal.fire({
+            title: 'Lỗi!',
+            text: 'Tài khoản không tồn tại.',
+            icon: 'error',
+            confirmButtonText: 'Thử lại'
+        });
         </script>";
     }
 
+    // Đóng câu lệnh và kết nối
     $stmt->close();
+    $conn->close();
 }
 ?>
-
